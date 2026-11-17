@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+*.iso
+*.vdi
+*.qcow2
+
+.venv-stdlib/

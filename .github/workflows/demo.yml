@@ -1,0 +1,98 @@
+name: Kiểm tra bài thực hành
+on: [push, workflow_dispatch]
+
+permissions:
+  contents: read
+
+jobs:
+  python-docker-postgresql:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Kiểm tra Python và uv
+        run: |
+          python3 -m pip install --user uv
+          python3 demo.py | tee host.json
+          uv run --locked python demo.py | tee venv.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          host = json.loads(Path("host.json").read_text())
+          venv = json.loads(Path("venv.json").read_text())
+          assert not host["virtual_env_active"]
+          assert venv["virtual_env_active"]
+          assert host["kernel"] == venv["kernel"]
+          assert host["hostname"] == venv["hostname"]
+          PY
+
+      - name: Build và chạy Docker
+        run: |
+          docker build -t phy3645-env-demo .
+          docker run --rm --hostname lab-docker phy3645-env-demo | tee docker.json
+          python3 - <<'PY'
+          import json
+          import platform
+          from pathlib import Path
+
+          container = json.loads(Path("docker.json").read_text())
+          assert container["hostname"] == "lab-docker"
+          assert container["kernel"] == platform.release()
+          assert not container["virtual_env_active"]
+          PY
+
+      - name: Chạy PostgreSQL và kiểm tra dữ liệu sau khi chạy lại
+        run: |
+          sudo systemctl start postgresql
+          sudo -u postgres createdb phy3645_lab
+          for run in 1 2; do
+            sudo -u postgres psql -X -v ON_ERROR_STOP=1 -d phy3645_lab < sql/demo.sql
+          done
+          result=$(sudo -u postgres psql -X -At -v ON_ERROR_STOP=1 -d phy3645_lab \
+            -c 'SELECT count(*), sum(score) FROM lab_courses.enrollments')
+          test "$result" = '4|33.00'
+
+  ubuntu-vm:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Cài QEMU và tải ảnh Ubuntu
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 cloud-image-utils
+          curl --fail --location --retry 3 \
+            https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img \
+            --output ubuntu.img
+
+      - name: Chạy demo.py trong máy ảo
+        run: |
+          cat > user-data.yaml <<CLOUD
+          #cloud-config
+          hostname: lab-vm
+          manage_etc_hosts: true
+          write_files:
+            - path: /opt/demo.py
+              encoding: b64
+              content: $(base64 -w0 demo.py)
+          runcmd:
+            - [sh, -c, 'python3 /opt/demo.py > /dev/ttyS0']
+          power_state:
+            mode: poweroff
+          CLOUD
+          printf 'instance-id: phy3645-lab-vm\n' > meta-data.yaml
+          cloud-localds seed.img user-data.yaml meta-data.yaml
+          timeout 540 qemu-system-x86_64 -machine q35,accel=kvm:tcg -smp 2 -m 2048 \
+            -nographic -snapshot -nic user \
+            -drive if=virtio,format=qcow2,file=ubuntu.img \
+            -drive if=virtio,format=raw,file=seed.img | tee vm.log
+          grep -F '"hostname": "lab-vm"' vm.log
+          grep -F '"os": "Ubuntu 24.04' vm.log
+          grep -F '"virtual_env_active": false' vm.log
