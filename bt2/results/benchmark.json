@@ -1,0 +1,246 @@
+{
+  "environment": {
+    "measured_at_utc": "2026-11-24T20:47:40.435145+00:00",
+    "platform": "Linux-7.0.0-1014-aws-x86_64-with-glibc2.39",
+    "cpu_count": 4,
+    "python": "3.12.3",
+    "psycopg": "3.3.9",
+    "postgresql": "PostgreSQL 16.16 (Ubuntu 16.16-1.pgdg24.04+1) on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit",
+    "settings": {
+      "fsync": "on",
+      "full_page_writes": "on",
+      "shared_buffers": "16384",
+      "synchronous_commit": "on"
+    }
+  },
+  "batch_size": 5000,
+  "repeats": 3,
+  "manifest": [
+    {
+      "name": "yellow_202401",
+      "source_url": "https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2024-01.parquet",
+      "rows": 2964624,
+      "csv_file": "yellow_202401.csv",
+      "csv_bytes": 197914374,
+      "parquet_bytes": 49961641,
+      "csv_sha256": "aa2c69696c1c54f3198a60a145ab79b553db105f0dcf016620ca01bf1aa93a49",
+      "parquet_sha256": "c4d59da7bbc8abaeeeb1727947ee93d9891a71acb42854bd80db1571b2030510"
+    },
+    {
+      "name": "yellow_202402",
+      "source_url": "https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2024-02.parquet",
+      "rows": 3007526,
+      "csv_file": "yellow_202402.csv",
+      "csv_bytes": 200823776,
+      "parquet_bytes": 50349284,
+      "csv_sha256": "7708fbe962f004f9c4a3d84c9758c20aa1be109cd1c92a0be467c79da0dc13f9",
+      "parquet_sha256": "c76c43c18c6c6664080dd920baab4928988d5786a6b65980792ca7cd796f9f20"
+    }
+  ],
+  "measurements": [
+    {
+      "repeat": 1,
+      "method": "insert",
+      "dataset": "yellow_202401",
+      "rows": 2964624,
+      "seconds": 47.189444872000024,
+      "rows_per_second": 62823.87953580414,
+      "signature": [
+        2964624,
+        1,
+        2964624,
+        "4394499213000",
+        "53882224.76",
+        "-21937269930477046658760"
+      ],
+      "table_bytes": 317071360
+    },
+    {
+      "repeat": 1,
+      "method": "insert",
+      "dataset": "yellow_202402",
+      "rows": 3007526,
+      "seconds": 46.734240381000006,
+      "rows_per_second": 64353.80088520112,
+      "signature": [
+        3007526,
+        1,
+        3007526,
+        "4522607824101",
+        "54277707.11",
+        "11860471308851676791503"
+      ],
+      "table_bytes": 321667072
+    },
+    {
+      "repeat": 1,
+      "method": "copy",
+      "dataset": "yellow_202401",
+      "rows": 2964624,
+      "seconds": 4.176494850000012,
+      "rows_per_second": 709835.42575181,
+      "signature": [
+        2964624,
+        1,
+        2964624,
+        "4394499213000",
+        "53882224.76",
+        "-21937269930477046658760"
+      ],
+      "table_bytes": 317497344
+    },
+    {
+      "repeat": 1,
+      "method": "copy",
+      "dataset": "yellow_202402",
+      "rows": 3007526,
+      "seconds": 5.686174596000001,
+      "rows_per_second": 528919.0384895455,
+      "signature": [
+        3007526,
+        1,
+        3007526,
+        "4522607824101",
+        "54277707.11",
+        "11860471308851676791503"
+      ],
+      "table_bytes": 322142208
+    },
+    {
+      "repeat": 2,
+      "method": "copy",
+      "dataset": "yellow_202401",
+      "rows": 2964624,
+      "seconds": 5.526296762000015,
+      "rows_per_second": 536457.6184879142,
+      "signature": [
+        2964624,
+        1,
+        2964624,
+        "4394499213000",
+        "53882224.76",
+        "-21937269930477046658760"
+      ],
+      "table_bytes": 317497344
+    },
+    {
+      "repeat": 2,
+      "method": "copy",
+      "dataset": "yellow_202402",
+      "rows": 3007526,
+      "seconds": 4.221056116,
+      "rows_per_second": 712505.5714374209,
+      "signature": [
+        3007526,
+        1,
+        3007526,
+        "4522607824101",
+        "54277707.11",
+        "11860471308851676791503"
+      ],
+      "table_bytes": 322142208
+    },
+    {
+      "repeat": 2,
+      "method": "insert",
+      "dataset": "yellow_202401",
+      "rows": 2964624,
+      "seconds": 46.641983366000034,
+      "rows_per_second": 63561.27647352752,
+      "signature": [
+        2964624,
+        1,
+        2964624,
+        "4394499213000",
+        "53882224.76",
+        "-21937269930477046658760"
+      ],
+      "table_bytes": 317071360
+    },
+    {
+      "repeat": 2,
+      "method": "insert",
+      "dataset": "yellow_202402",
+      "rows": 3007526,
+      "seconds": 46.782406750999996,
+      "rows_per_second": 64287.54330677339,
+      "signature": [
+        3007526,
+        1,
+        3007526,
+        "4522607824101",
+        "54277707.11",
+        "11860471308851676791503"
+      ],
+      "table_bytes": 321667072
+    },
+    {
+      "repeat": 3,
+      "method": "insert",
+      "dataset": "yellow_202401",
+      "rows": 2964624,
+      "seconds": 46.488909958999955,
+      "rows_per_second": 63770.56383155888,
+      "signature": [
+        2964624,
+        1,
+        2964624,
+        "4394499213000",
+        "53882224.76",
+        "-21937269930477046658760"
+      ],
+      "table_bytes": 317071360
+    },
+    {
+      "repeat": 3,
+      "method": "insert",
+      "dataset": "yellow_202402",
+      "rows": 3007526,
+      "seconds": 47.62701947100004,
+      "rows_per_second": 63147.47455131586,
+      "signature": [
+        3007526,
+        1,
+        3007526,
+        "4522607824101",
+        "54277707.11",
+        "11860471308851676791503"
+      ],
+      "table_bytes": 321667072
+    },
+    {
+      "repeat": 3,
+      "method": "copy",
+      "dataset": "yellow_202401",
+      "rows": 2964624,
+      "seconds": 4.598699752000016,
+      "rows_per_second": 644665.7011496909,
+      "signature": [
+        2964624,
+        1,
+        2964624,
+        "4394499213000",
+        "53882224.76",
+        "-21937269930477046658760"
+      ],
+      "table_bytes": 317497344
+    },
+    {
+      "repeat": 3,
+      "method": "copy",
+      "dataset": "yellow_202402",
+      "rows": 3007526,
+      "seconds": 5.339531895999983,
+      "rows_per_second": 563256.4911266915,
+      "signature": [
+        3007526,
+        1,
+        3007526,
+        "4522607824101",
+        "54277707.11",
+        "11860471308851676791503"
+      ],
+      "table_bytes": 322142208
+    }
+  ]
+}
