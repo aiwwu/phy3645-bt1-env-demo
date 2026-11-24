@@ -24,8 +24,12 @@ fare_amount NUMERIC(18, 2)
 
 BEGIN;
 TRUNCATE bt2_copy.yellow_202401, bt2_copy.yellow_202402;
+COMMIT;
 \timing on
+BEGIN;
 \copy bt2_copy.yellow_202401 FROM 'data/yellow_202401.csv' WITH (FORMAT csv, HEADER true, NULL '')
+COMMIT;
+BEGIN;
 \copy bt2_copy.yellow_202402 FROM 'data/yellow_202402.csv' WITH (FORMAT csv, HEADER true, NULL '')
 COMMIT;
 SELECT '2024-01' AS source_month, COUNT(*) FROM bt2_copy.yellow_202401

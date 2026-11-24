@@ -9,12 +9,12 @@ import os
 from pathlib import Path
 import platform
 import re
-import statistics
 import subprocess
 import time
 
 import psycopg
 from psycopg import sql
+from psycopg.conninfo import conninfo_to_dict, make_conninfo
 
 from prepare import COLUMNS, sha256
 
@@ -50,11 +50,8 @@ def insert_python(connection, name, path, batch_size):
             while batch := list(islice(reader, batch_size)):
                 if any(len(row) != len(COLUMNS) for row in batch):
                     raise ValueError("CSV có dòng sai số cột")
-                placeholders = sql.SQL(",").join(
-                    sql.SQL("(") + sql.SQL(",").join(
-                        sql.Placeholder() for _ in COLUMNS
-                    ) + sql.SQL(")") for _ in batch
-                )
+                value_row = "(" + ", ".join(["%s"] * len(COLUMNS)) + ")"
+                placeholders = sql.SQL(", ".join([value_row] * len(batch)))
                 query = sql.SQL("INSERT INTO bt2_insert.{} VALUES {}").format(
                     sql.Identifier(name), placeholders)
                 parameters = [
@@ -65,7 +62,7 @@ def insert_python(connection, name, path, batch_size):
 
 def copy_commands(name, path):
     # psql meta-command cần đường dẫn trên một dòng, quote bằng dấu nháy đơn.
-    filename = str(path.resolve())
+    filename = path.resolve().as_posix()
     if any(character in filename for character in "\r\n\\"):
         raise ValueError("Đường dẫn chứa newline hoặc backslash không được hỗ trợ")
     filename = filename.replace("'", "''")
@@ -76,13 +73,17 @@ def copy_commands(name, path):
     )
 
 
-def copy_psql(dsn, name, path, psql_program):
+def run_psql(dsn, commands, psql_program):
     environment = os.environ.copy()
-    # Giữ DSN khỏi argv và file kết quả, dùng libpq qua PGDATABASE.
-    environment["PGDATABASE"] = dsn
+    parameters = conninfo_to_dict(dsn)
+    password = parameters.pop("password", None)
+    if password is not None:
+        environment["PGPASSWORD"] = password
+    # psql -d nhận conninfo. PGDATABASE chỉ nhận tên database.
     subprocess.run(
-        [psql_program, "-X", "-v", "ON_ERROR_STOP=1"],
-        input=copy_commands(name, path), text=True, env=environment, check=True,
+        [psql_program, "-X", "-d", make_conninfo(**parameters),
+         "-v", "ON_ERROR_STOP=1"],
+        input=commands, text=True, env=environment, check=True,
     )
 
 
@@ -144,6 +145,8 @@ def main():
             "SELECT pg_try_advisory_lock(3645, 2)"
         ).fetchone()[0]:
             raise RuntimeError("Một benchmark khác đang chạy trong database")
+        # Kiểm tra đường kết nối psql trước các phép INSERT tốn nhiều thời gian.
+        run_psql(dsn, "SELECT current_database();\n", args.psql)
         for repeat in range(1, args.repeats + 1):
             order = ["insert", "copy"] if repeat % 2 else ["copy", "insert"]
             for method in order:
@@ -155,7 +158,7 @@ def main():
                     if method == "insert":
                         insert_python(connection, name, path, args.batch_size)
                     else:
-                        copy_psql(dsn, name, path, args.psql)
+                        run_psql(dsn, copy_commands(name, path), args.psql)
                     elapsed = time.perf_counter() - started
                     fingerprint = signature(connection, f"bt2_{method}", name)
                     expected_rows = item["rows"]

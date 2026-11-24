@@ -30,6 +30,7 @@ jobs:
           sudo systemctl start postgresql
           sudo -u postgres createuser --superuser runner
           createdb bt2_lab
+          .venv/bin/python -m unittest -v
       - name: Tải và chuyển dữ liệu đầy đủ
         run: .venv/bin/python prepare.py
       - name: Xác minh dataset phụ trên 10 triệu dòng
@@ -43,7 +44,9 @@ jobs:
       - name: Kiểm tra CRUD, DML và DDL
         env:
           PGDATABASE: bt2_lab
-        run: psql -X -v ON_ERROR_STOP=1 -f sql/practice.sql
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -f sql/manual.sql
+          psql -X -v ON_ERROR_STOP=1 -f sql/practice.sql
       - name: Lưu kết quả thực đo vào repository
         run: |
           git config user.name "github-actions[bot]"
