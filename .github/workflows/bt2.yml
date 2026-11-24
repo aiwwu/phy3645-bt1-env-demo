@@ -1,0 +1,55 @@
+name: Bài 2 - Benchmark PostgreSQL
+on:
+  push:
+    paths:
+      - 'bt2/**.py'
+      - 'bt2/requirements.txt'
+      - '.github/workflows/bt2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bt2-benchmark
+  cancel-in-progress: false
+
+jobs:
+  full-benchmark:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    defaults:
+      run:
+        working-directory: bt2
+    steps:
+      - uses: actions/checkout@v6
+      - name: Cài môi trường và PostgreSQL
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install -r requirements.txt
+          sudo systemctl start postgresql
+          sudo -u postgres createuser --superuser runner
+          createdb bt2_lab
+      - name: Tải và chuyển dữ liệu đầy đủ
+        run: .venv/bin/python prepare.py
+      - name: Xác minh dataset phụ trên 10 triệu dòng
+        run: .venv/bin/python inspect_large.py
+      - name: Chạy mỗi cách ba lượt và tạo báo cáo
+        env:
+          DATABASE_URL: postgresql:///bt2_lab
+        run: |
+          .venv/bin/python benchmark.py --repeats 3
+          .venv/bin/python make_report.py
+      - name: Kiểm tra CRUD, DML và DDL
+        env:
+          PGDATABASE: bt2_lab
+        run: psql -X -v ON_ERROR_STOP=1 -f sql/practice.sql
+      - name: Lưu kết quả thực đo vào repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add REPORT.md results/benchmark.json results/benchmark.csv results/large_dataset.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Lưu báo cáo và số liệu benchmark bài 2"
+            git push origin HEAD:main
+          fi

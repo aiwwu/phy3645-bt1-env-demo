@@ -2,6 +2,10 @@
 
 Bài thực hành chạy cùng một chương trình Python ở các môi trường khác nhau để quan sát phần nào được cô lập. Phần cơ sở dữ liệu dùng PostgreSQL và dữ liệu giả lập về sinh viên, môn học và lượt đăng ký.
 
+## Bài thực hành 2
+
+[Nạp dữ liệu nhiều triệu dòng vào PostgreSQL, so sánh Python và psql](bt2/README.md).
+
 ## 1. So sánh ba môi trường
 
 | Môi trường | Cô lập ở mức nào? | Dùng khi nào? |

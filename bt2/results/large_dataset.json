@@ -1,0 +1,8 @@
+{
+  "source_url": "https://d37ci6vzurychx.cloudfront.net/trip-data/fhvhv_tripdata_2024-01.parquet",
+  "dataset": "NYC TLC High Volume For-Hire Vehicle, January 2024",
+  "rows": 19663930,
+  "file_bytes": 472757547,
+  "verification": "Parquet metadata fetched with HTTP Range",
+  "benchmark_performed": false
+}
