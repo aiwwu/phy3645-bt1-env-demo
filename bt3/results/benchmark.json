@@ -1,0 +1,805 @@
+{
+  "environment": {
+    "measured_at_utc": "2026-11-28T11:19:20.140053+00:00",
+    "platform": "Linux-7.0.0-1018-aws-x86_64-with-glibc2.39",
+    "cpu_count": 4,
+    "python": "3.12.3",
+    "psycopg": "3.3.9",
+    "postgresql": "PostgreSQL 16.16 (Ubuntu 16.16-1.pgdg24.04+1) on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit",
+    "settings": {
+      "enable_hashagg": "on",
+      "enable_indexscan": "on",
+      "enable_seqscan": "on",
+      "jit": "off",
+      "max_parallel_workers_per_gather": "2",
+      "shared_buffers": "16384",
+      "work_mem": "65536"
+    }
+  },
+  "data_counts": {
+    "yellow_202401": 2964624,
+    "yellow_202402": 3007526
+  },
+  "repeats": 7,
+  "edge_cases": {
+    "where": {
+      "before_rows": 1,
+      "after_rows": 1,
+      "different_rows": 0,
+      "method": "bidirectional EXCEPT ALL on materialized query results"
+    },
+    "group_by": {
+      "before_rows": 6,
+      "after_rows": 6,
+      "different_rows": 0,
+      "method": "bidirectional EXCEPT ALL on materialized query results"
+    },
+    "having": {
+      "before_rows": 3,
+      "after_rows": 3,
+      "different_rows": 0,
+      "method": "bidirectional EXCEPT ALL on materialized query results"
+    }
+  },
+  "queries": {
+    "where": {
+      "before": "SELECT COUNT(*) AS trip_count, SUM(fare_amount) AS total_fare\nFROM bt3.trips\nWHERE pickup_at::date = DATE '2024-01-15'",
+      "after": "SELECT COUNT(*) AS trip_count, SUM(fare_amount) AS total_fare\nFROM bt3.trips\nWHERE pickup_at >= TIMESTAMP '2024-01-15 00:00:00'\n  AND pickup_at < TIMESTAMP '2024-01-16 00:00:00'"
+    },
+    "group_by": {
+      "before": "SELECT pickup_location_id, dropoff_location_id,\n       COUNT(*) AS trip_count, SUM(fare_amount) AS total_fare\nFROM bt3.trips\nGROUP BY pickup_location_id, dropoff_location_id,\n         (pickup_location_id::text || '/' || dropoff_location_id::text)",
+      "after": "SELECT pickup_location_id, dropoff_location_id,\n       COUNT(*) AS trip_count, SUM(fare_amount) AS total_fare\nFROM bt3.trips\nGROUP BY pickup_location_id, dropoff_location_id"
+    },
+    "having": {
+      "before": "SELECT pickup_location_id, dropoff_location_id,\n       COUNT(*) AS trip_count, SUM(fare_amount) AS total_fare\nFROM bt3.trips\nGROUP BY pickup_location_id, dropoff_location_id\nHAVING COUNT(DISTINCT provider_id) > 1",
+      "after": "SELECT pickup_location_id, dropoff_location_id,\n       COUNT(*) AS trip_count, SUM(fare_amount) AS total_fare\nFROM bt3.trips\nGROUP BY pickup_location_id, dropoff_location_id\nHAVING MIN(provider_id) <> MAX(provider_id)"
+    }
+  },
+  "results": {
+    "where": {
+      "equality": {
+        "before_rows": 1,
+        "after_rows": 1,
+        "different_rows": 0,
+        "method": "bidirectional EXCEPT ALL on materialized query results"
+      },
+      "sample": [
+        [
+          77033,
+          "1486583.28"
+        ]
+      ],
+      "summaries": {
+        "before": {
+          "median_ms": 165.983,
+          "min_ms": 165.87,
+          "max_ms": 168.319,
+          "plan_nodes": [
+            "Aggregate",
+            "Gather",
+            "Aggregate",
+            "Append",
+            "Seq Scan",
+            "Seq Scan"
+          ],
+          "plan_file": "results/plans/where_before.json",
+          "shared_read_blocks": 58784,
+          "temp_written_blocks": 0
+        },
+        "after": {
+          "median_ms": 19.805,
+          "min_ms": 19.671,
+          "max_ms": 19.977,
+          "plan_nodes": [
+            "Aggregate",
+            "Append",
+            "Index Scan",
+            "Index Scan"
+          ],
+          "plan_file": "results/plans/where_after.json",
+          "shared_read_blocks": 0,
+          "temp_written_blocks": 0
+        }
+      },
+      "speedup": 8.380863418328705
+    },
+    "group_by": {
+      "equality": {
+        "before_rows": 32457,
+        "after_rows": 32457,
+        "different_rows": 0,
+        "method": "bidirectional EXCEPT ALL on materialized query results"
+      },
+      "sample": [
+        [
+          1,
+          1,
+          523,
+          "44713.98"
+        ],
+        [
+          1,
+          6,
+          2,
+          "150.00"
+        ],
+        [
+          1,
+          48,
+          1,
+          "124.00"
+        ],
+        [
+          1,
+          68,
+          1,
+          "147.20"
+        ],
+        [
+          1,
+          132,
+          2,
+          "426.70"
+        ]
+      ],
+      "summaries": {
+        "before": {
+          "median_ms": 955.639,
+          "min_ms": 949.469,
+          "max_ms": 960.613,
+          "plan_nodes": [
+            "Aggregate",
+            "Gather",
+            "Aggregate",
+            "Result",
+            "Append",
+            "Seq Scan",
+            "Seq Scan"
+          ],
+          "plan_file": "results/plans/group_by_before.json",
+          "shared_read_blocks": 56544,
+          "temp_written_blocks": 0
+        },
+        "after": {
+          "median_ms": 621.139,
+          "min_ms": 617.246,
+          "max_ms": 628.795,
+          "plan_nodes": [
+            "Aggregate",
+            "Gather",
+            "Aggregate",
+            "Append",
+            "Seq Scan",
+            "Seq Scan"
+          ],
+          "plan_file": "results/plans/group_by_after.json",
+          "shared_read_blocks": 56864,
+          "temp_written_blocks": 0
+        }
+      },
+      "speedup": 1.5385268031793207
+    },
+    "having": {
+      "equality": {
+        "before_rows": 17106,
+        "after_rows": 17106,
+        "different_rows": 0,
+        "method": "bidirectional EXCEPT ALL on materialized query results"
+      },
+      "sample": [
+        [
+          1,
+          1,
+          523,
+          "44713.98"
+        ],
+        [
+          1,
+          138,
+          2,
+          "207.80"
+        ],
+        [
+          1,
+          265,
+          19,
+          "920.70"
+        ],
+        [
+          3,
+          3,
+          16,
+          "570.33"
+        ],
+        [
+          3,
+          51,
+          7,
+          "111.27"
+        ]
+      ],
+      "summaries": {
+        "before": {
+          "median_ms": 3899.158,
+          "min_ms": 3840.621,
+          "max_ms": 4017.604,
+          "plan_nodes": [
+            "Aggregate",
+            "Sort",
+            "Append",
+            "Seq Scan",
+            "Seq Scan"
+          ],
+          "plan_file": "results/plans/having_before.json",
+          "shared_read_blocks": 53504,
+          "temp_written_blocks": 19543
+        },
+        "after": {
+          "median_ms": 845.354,
+          "min_ms": 817.843,
+          "max_ms": 870.824,
+          "plan_nodes": [
+            "Aggregate",
+            "Gather",
+            "Aggregate",
+            "Append",
+            "Seq Scan",
+            "Seq Scan"
+          ],
+          "plan_file": "results/plans/having_after.json",
+          "shared_read_blocks": 53824,
+          "temp_written_blocks": 0
+        }
+      },
+      "speedup": 4.612455846899642
+    }
+  },
+  "measurements": [
+    {
+      "pair": "where",
+      "variant": "before",
+      "repeat": 1,
+      "position": 1,
+      "execution_ms": 165.964,
+      "planning_ms": 0.075,
+      "client_wall_ms": 166.49128900002097,
+      "shared_hit_blocks": 2576,
+      "shared_read_blocks": 59104,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "where",
+      "variant": "after",
+      "repeat": 1,
+      "position": 2,
+      "execution_ms": 19.821,
+      "planning_ms": 0.158,
+      "client_wall_ms": 20.417127000030177,
+      "shared_hit_blocks": 73986,
+      "shared_read_blocks": 0,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "where",
+      "variant": "after",
+      "repeat": 2,
+      "position": 1,
+      "execution_ms": 19.707,
+      "planning_ms": 0.122,
+      "client_wall_ms": 20.460880999962683,
+      "shared_hit_blocks": 73986,
+      "shared_read_blocks": 0,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "where",
+      "variant": "before",
+      "repeat": 2,
+      "position": 2,
+      "execution_ms": 167.269,
+      "planning_ms": 0.087,
+      "client_wall_ms": 167.98537599999008,
+      "shared_hit_blocks": 2736,
+      "shared_read_blocks": 58944,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "where",
+      "variant": "before",
+      "repeat": 3,
+      "position": 1,
+      "execution_ms": 165.983,
+      "planning_ms": 0.13,
+      "client_wall_ms": 166.67485300001772,
+      "shared_hit_blocks": 2896,
+      "shared_read_blocks": 58784,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "where",
+      "variant": "after",
+      "repeat": 3,
+      "position": 2,
+      "execution_ms": 19.805,
+      "planning_ms": 0.174,
+      "client_wall_ms": 20.374507999974867,
+      "shared_hit_blocks": 73986,
+      "shared_read_blocks": 0,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "where",
+      "variant": "after",
+      "repeat": 4,
+      "position": 1,
+      "execution_ms": 19.689,
+      "planning_ms": 0.132,
+      "client_wall_ms": 20.242763999988256,
+      "shared_hit_blocks": 73986,
+      "shared_read_blocks": 0,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "where",
+      "variant": "before",
+      "repeat": 4,
+      "position": 2,
+      "execution_ms": 166.323,
+      "planning_ms": 0.093,
+      "client_wall_ms": 167.12584599997626,
+      "shared_hit_blocks": 3056,
+      "shared_read_blocks": 58624,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "where",
+      "variant": "before",
+      "repeat": 5,
+      "position": 1,
+      "execution_ms": 165.87,
+      "planning_ms": 0.103,
+      "client_wall_ms": 166.61472100003039,
+      "shared_hit_blocks": 3216,
+      "shared_read_blocks": 58464,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "where",
+      "variant": "after",
+      "repeat": 5,
+      "position": 2,
+      "execution_ms": 19.835,
+      "planning_ms": 0.187,
+      "client_wall_ms": 20.717596999986654,
+      "shared_hit_blocks": 73986,
+      "shared_read_blocks": 0,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "where",
+      "variant": "after",
+      "repeat": 6,
+      "position": 1,
+      "execution_ms": 19.671,
+      "planning_ms": 0.168,
+      "client_wall_ms": 20.346817000017836,
+      "shared_hit_blocks": 73986,
+      "shared_read_blocks": 0,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "where",
+      "variant": "before",
+      "repeat": 6,
+      "position": 2,
+      "execution_ms": 168.319,
+      "planning_ms": 0.089,
+      "client_wall_ms": 168.8701589999937,
+      "shared_hit_blocks": 3376,
+      "shared_read_blocks": 58304,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "where",
+      "variant": "before",
+      "repeat": 7,
+      "position": 1,
+      "execution_ms": 165.948,
+      "planning_ms": 0.115,
+      "client_wall_ms": 166.54902099998026,
+      "shared_hit_blocks": 3536,
+      "shared_read_blocks": 58144,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "where",
+      "variant": "after",
+      "repeat": 7,
+      "position": 2,
+      "execution_ms": 19.977,
+      "planning_ms": 0.185,
+      "client_wall_ms": 20.50493999996661,
+      "shared_hit_blocks": 73986,
+      "shared_read_blocks": 0,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "group_by",
+      "variant": "before",
+      "repeat": 1,
+      "position": 1,
+      "execution_ms": 949.469,
+      "planning_ms": 0.14,
+      "client_wall_ms": 950.1523400000451,
+      "shared_hit_blocks": 4496,
+      "shared_read_blocks": 57184,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "group_by",
+      "variant": "after",
+      "repeat": 1,
+      "position": 2,
+      "execution_ms": 620.403,
+      "planning_ms": 0.114,
+      "client_wall_ms": 621.0661490000007,
+      "shared_hit_blocks": 4656,
+      "shared_read_blocks": 57024,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "group_by",
+      "variant": "after",
+      "repeat": 2,
+      "position": 1,
+      "execution_ms": 621.139,
+      "planning_ms": 0.11,
+      "client_wall_ms": 621.7746300000044,
+      "shared_hit_blocks": 4816,
+      "shared_read_blocks": 56864,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "group_by",
+      "variant": "before",
+      "repeat": 2,
+      "position": 2,
+      "execution_ms": 959.516,
+      "planning_ms": 0.154,
+      "client_wall_ms": 960.2820430000065,
+      "shared_hit_blocks": 4976,
+      "shared_read_blocks": 56704,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "group_by",
+      "variant": "before",
+      "repeat": 3,
+      "position": 1,
+      "execution_ms": 955.639,
+      "planning_ms": 0.122,
+      "client_wall_ms": 956.4137319999872,
+      "shared_hit_blocks": 5136,
+      "shared_read_blocks": 56544,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "group_by",
+      "variant": "after",
+      "repeat": 3,
+      "position": 2,
+      "execution_ms": 617.246,
+      "planning_ms": 0.111,
+      "client_wall_ms": 618.1536899999855,
+      "shared_hit_blocks": 5296,
+      "shared_read_blocks": 56384,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "group_by",
+      "variant": "after",
+      "repeat": 4,
+      "position": 1,
+      "execution_ms": 619.728,
+      "planning_ms": 0.109,
+      "client_wall_ms": 620.6297219999897,
+      "shared_hit_blocks": 5456,
+      "shared_read_blocks": 56224,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "group_by",
+      "variant": "before",
+      "repeat": 4,
+      "position": 2,
+      "execution_ms": 951.601,
+      "planning_ms": 0.125,
+      "client_wall_ms": 952.2910080000315,
+      "shared_hit_blocks": 5616,
+      "shared_read_blocks": 56064,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "group_by",
+      "variant": "before",
+      "repeat": 5,
+      "position": 1,
+      "execution_ms": 955.076,
+      "planning_ms": 0.119,
+      "client_wall_ms": 955.8809829999859,
+      "shared_hit_blocks": 5776,
+      "shared_read_blocks": 55904,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "group_by",
+      "variant": "after",
+      "repeat": 5,
+      "position": 2,
+      "execution_ms": 628.795,
+      "planning_ms": 0.11,
+      "client_wall_ms": 629.7415739999792,
+      "shared_hit_blocks": 5936,
+      "shared_read_blocks": 55744,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "group_by",
+      "variant": "after",
+      "repeat": 6,
+      "position": 1,
+      "execution_ms": 623.007,
+      "planning_ms": 0.144,
+      "client_wall_ms": 623.6231419999854,
+      "shared_hit_blocks": 6096,
+      "shared_read_blocks": 55584,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "group_by",
+      "variant": "before",
+      "repeat": 6,
+      "position": 2,
+      "execution_ms": 960.613,
+      "planning_ms": 0.135,
+      "client_wall_ms": 961.2271649999684,
+      "shared_hit_blocks": 6256,
+      "shared_read_blocks": 55424,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "group_by",
+      "variant": "before",
+      "repeat": 7,
+      "position": 1,
+      "execution_ms": 957.976,
+      "planning_ms": 0.157,
+      "client_wall_ms": 958.6084450000385,
+      "shared_hit_blocks": 6416,
+      "shared_read_blocks": 55264,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "group_by",
+      "variant": "after",
+      "repeat": 7,
+      "position": 2,
+      "execution_ms": 624.988,
+      "planning_ms": 0.12,
+      "client_wall_ms": 625.5480400000124,
+      "shared_hit_blocks": 6576,
+      "shared_read_blocks": 55104,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "having",
+      "variant": "before",
+      "repeat": 1,
+      "position": 1,
+      "execution_ms": 3849.705,
+      "planning_ms": 0.104,
+      "client_wall_ms": 3850.3487399999585,
+      "shared_hit_blocks": 7344,
+      "shared_read_blocks": 54336,
+      "temp_read_blocks": 19537,
+      "temp_written_blocks": 19543
+    },
+    {
+      "pair": "having",
+      "variant": "after",
+      "repeat": 1,
+      "position": 2,
+      "execution_ms": 836.546,
+      "planning_ms": 0.12,
+      "client_wall_ms": 837.2147519999658,
+      "shared_hit_blocks": 7408,
+      "shared_read_blocks": 54272,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "having",
+      "variant": "after",
+      "repeat": 2,
+      "position": 1,
+      "execution_ms": 817.843,
+      "planning_ms": 0.167,
+      "client_wall_ms": 818.5011570000142,
+      "shared_hit_blocks": 7568,
+      "shared_read_blocks": 54112,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "having",
+      "variant": "before",
+      "repeat": 2,
+      "position": 2,
+      "execution_ms": 3867.688,
+      "planning_ms": 0.106,
+      "client_wall_ms": 3868.4995589999858,
+      "shared_hit_blocks": 7728,
+      "shared_read_blocks": 53952,
+      "temp_read_blocks": 19537,
+      "temp_written_blocks": 19543
+    },
+    {
+      "pair": "having",
+      "variant": "before",
+      "repeat": 3,
+      "position": 1,
+      "execution_ms": 3840.621,
+      "planning_ms": 0.138,
+      "client_wall_ms": 3841.3478520000126,
+      "shared_hit_blocks": 7792,
+      "shared_read_blocks": 53888,
+      "temp_read_blocks": 19537,
+      "temp_written_blocks": 19543
+    },
+    {
+      "pair": "having",
+      "variant": "after",
+      "repeat": 3,
+      "position": 2,
+      "execution_ms": 845.354,
+      "planning_ms": 0.147,
+      "client_wall_ms": 846.0793990000184,
+      "shared_hit_blocks": 7856,
+      "shared_read_blocks": 53824,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "having",
+      "variant": "after",
+      "repeat": 4,
+      "position": 1,
+      "execution_ms": 844.113,
+      "planning_ms": 0.121,
+      "client_wall_ms": 844.8110850000035,
+      "shared_hit_blocks": 8016,
+      "shared_read_blocks": 53664,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "having",
+      "variant": "before",
+      "repeat": 4,
+      "position": 2,
+      "execution_ms": 3899.158,
+      "planning_ms": 0.108,
+      "client_wall_ms": 3899.822154999981,
+      "shared_hit_blocks": 8176,
+      "shared_read_blocks": 53504,
+      "temp_read_blocks": 19537,
+      "temp_written_blocks": 19543
+    },
+    {
+      "pair": "having",
+      "variant": "before",
+      "repeat": 5,
+      "position": 1,
+      "execution_ms": 3926.621,
+      "planning_ms": 0.124,
+      "client_wall_ms": 3927.486232000035,
+      "shared_hit_blocks": 8272,
+      "shared_read_blocks": 53408,
+      "temp_read_blocks": 19537,
+      "temp_written_blocks": 19543
+    },
+    {
+      "pair": "having",
+      "variant": "after",
+      "repeat": 5,
+      "position": 2,
+      "execution_ms": 870.824,
+      "planning_ms": 0.209,
+      "client_wall_ms": 871.7241720000288,
+      "shared_hit_blocks": 8336,
+      "shared_read_blocks": 53344,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "having",
+      "variant": "after",
+      "repeat": 6,
+      "position": 1,
+      "execution_ms": 861.062,
+      "planning_ms": 0.156,
+      "client_wall_ms": 861.7211380000072,
+      "shared_hit_blocks": 8496,
+      "shared_read_blocks": 53184,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    },
+    {
+      "pair": "having",
+      "variant": "before",
+      "repeat": 6,
+      "position": 2,
+      "execution_ms": 4017.604,
+      "planning_ms": 0.144,
+      "client_wall_ms": 4018.2329300000106,
+      "shared_hit_blocks": 8656,
+      "shared_read_blocks": 53024,
+      "temp_read_blocks": 19537,
+      "temp_written_blocks": 19543
+    },
+    {
+      "pair": "having",
+      "variant": "before",
+      "repeat": 7,
+      "position": 1,
+      "execution_ms": 3949.533,
+      "planning_ms": 0.123,
+      "client_wall_ms": 3950.1428359999977,
+      "shared_hit_blocks": 8752,
+      "shared_read_blocks": 52928,
+      "temp_read_blocks": 19537,
+      "temp_written_blocks": 19543
+    },
+    {
+      "pair": "having",
+      "variant": "after",
+      "repeat": 7,
+      "position": 2,
+      "execution_ms": 846.138,
+      "planning_ms": 0.153,
+      "client_wall_ms": 846.7758529999969,
+      "shared_hit_blocks": 8784,
+      "shared_read_blocks": 52896,
+      "temp_read_blocks": 0,
+      "temp_written_blocks": 0
+    }
+  ]
+}
