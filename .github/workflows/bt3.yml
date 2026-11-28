@@ -1,0 +1,58 @@
+name: Bài 3 - Tối ưu truy vấn SQL
+on:
+  push:
+    paths:
+      - 'bt3/**.py'
+      - 'bt3/sql/**'
+      - 'bt3/requirements.txt'
+      - '.github/workflows/bt3.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bt3-benchmark
+  cancel-in-progress: false
+
+jobs:
+  full-benchmark:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+      - name: Cài môi trường và database
+        run: |
+          python3 -m venv /tmp/bt3-venv
+          /tmp/bt3-venv/bin/pip install -r bt2/requirements.txt
+          sudo systemctl start postgresql
+          sudo -u postgres createuser --createdb runner
+          createdb bt3_lab
+      - name: Tải và nạp đủ dữ liệu bài 2
+        working-directory: bt2
+        env:
+          PGDATABASE: bt3_lab
+        run: |
+          /tmp/bt3-venv/bin/python prepare.py
+          psql -X -v ON_ERROR_STOP=1 -f sql/manual.sql
+      - name: Tạo index và cập nhật thống kê
+        env:
+          PGDATABASE: bt3_lab
+        run: psql -X -v ON_ERROR_STOP=1 -f bt3/sql/setup.sql
+      - name: Kiểm tra mệnh đề, đối chiếu output và đo 7 lượt
+        working-directory: bt3
+        env:
+          DATABASE_URL: postgresql:///bt3_lab
+        run: |
+          /tmp/bt3-venv/bin/python -m unittest -v
+          /tmp/bt3-venv/bin/python benchmark.py --repeats 7
+          /tmp/bt3-venv/bin/python make_report.py
+      - name: Lưu báo cáo và execution plans
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add bt3/REPORT.md bt3/results
+          if ! git diff --cached --quiet; then
+            git commit -m "Lưu kết quả thực đo và báo cáo tối ưu SQL bài 3"
+            git push origin HEAD:main
+          fi
